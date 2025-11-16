@@ -84,6 +84,15 @@ class StatsEntry {
 
         assert(std::abs(entry) <= D);
     }
+    void operator<<(std::pair<int, int> input) {
+        const auto [bonus, total] = input;
+        const int modulator       = (total + entry * 3) / 4;
+        // Make sure that bonus is in range [-D, D]
+        int clampedBonus = std::clamp(bonus, -D, D);
+        entry += clampedBonus - modulator * std::abs(clampedBonus) / D;
+
+        assert(std::abs(entry) <= D);
+    }
 };
 
 enum StatsType {
