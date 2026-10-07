@@ -88,11 +88,17 @@ int correction_value(const Worker& w, const Position& pos, const Stack* const ss
     const Color us     = pos.side_to_move();
     const auto  m      = (ss - 1)->currentMove;
     const auto& shared = w.sharedHistory;
-    const int   pcv    = shared.pawn_correction_entry(pos)[us].pawn;
-    const int   micv   = shared.minor_piece_correction_entry(pos)[us].minor;
-    const int   wnpcv  = shared.nonpawn_correction_entry<WHITE>(pos)[us].nonPawnWhite;
-    const int   bnpcv  = shared.nonpawn_correction_entry<BLACK>(pos)[us].nonPawnBlack;
-    const int   cntcv =
+
+    int pawn_sign  = corr_sign(pos.pawn_key());
+    int minor_sign = corr_sign(pos.minor_piece_key());
+    int white_sign = corr_sign(pos.non_pawn_key(WHITE));
+    int black_sign = corr_sign(pos.non_pawn_key(BLACK));
+
+    const int  pcv  = shared.pawn_correction_entry(pos)[us].pawn * pawn_sign;
+    const int  micv = shared.minor_piece_correction_entry(pos)[us].minor * minor_sign;
+    const int wnpcv = shared.nonpawn_correction_entry<WHITE>(pos)[us].nonPawnWhite * white_sign;
+    const int bnpcv = shared.nonpawn_correction_entry<BLACK>(pos)[us].nonPawnBlack * black_sign;
+    const int cntcv =
       m.is_ok()
           ? 7885
               * ((*(ss - 2)->continuationCorrectionHistory)[pos.piece_on(m.to_sq())][m.to_sq()]
@@ -119,10 +125,14 @@ void update_correction_history(const Position& pos,
     constexpr int nonPawnWeight = 186;
     auto&         shared        = workerThread.sharedHistory;
 
-    shared.pawn_correction_entry(pos)[us].pawn << bonus;
-    shared.minor_piece_correction_entry(pos)[us].minor << bonus * 150 / 128;
-    shared.nonpawn_correction_entry<WHITE>(pos)[us].nonPawnWhite << bonus * nonPawnWeight / 128;
-    shared.nonpawn_correction_entry<BLACK>(pos)[us].nonPawnBlack << bonus * nonPawnWeight / 128;
+    int pawn_sign  = corr_sign(pos.pawn_key());
+    int minor_sign = corr_sign(pos.minor_piece_key());
+    int white_sign = corr_sign(pos.non_pawn_key(WHITE));
+    int black_sign = corr_sign(pos.non_pawn_key(BLACK));
+    shared.pawn_correction_entry(pos)[us].pawn << bonus * pawn_sign;
+    shared.minor_piece_correction_entry(pos)[us].minor << bonus * minor_sign * 150 / 128;
+    shared.nonpawn_correction_entry<WHITE>(pos)[us].nonPawnWhite << bonus * white_sign * nonPawnWeight / 128;
+    shared.nonpawn_correction_entry<BLACK>(pos)[us].nonPawnBlack << bonus * black_sign * nonPawnWeight / 128;
 
     if (m.is_ok())
     {

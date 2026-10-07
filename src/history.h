@@ -193,6 +193,11 @@ using UnifiedCorrectionHistory =
 template<CorrHistType T>
 using CorrectionHistory = typename Detail::CorrHistTypedef<T>::type;
 
+// Construct a sign from the top bits of a key for debiasing.
+//
+// Idea from https://arxiv.org/pdf/0902.2206.
+constexpr int corr_sign(Key key) { return 1 - 2 * int(key >> 63); }
+
 using TTMoveHistory = StatsEntry<i16, 8192>;
 
 struct ContinuationHistoryBlock {
